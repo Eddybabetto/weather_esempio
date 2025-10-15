@@ -8,16 +8,75 @@ window.addEventListener("load", async () => {
         "Venerdì",
         "Sabato"
     ]
+    const weather_codes = await fetch('js-resources/weather-codes.json')
+        .then(response => response.json())
+        .catch(error => console.log(error));
 
-    let result = await fetch("https://api.open-meteo.com/v1/forecast?latitude=45.408&longitude=11.8859&hourly=temperature_2m&forecast_days=16")
+    console.log(weather_codes["0"]["day"]["description"])
+
+    function popolaTabella(dati, tabella) {
+        // creo td data
+        let td_data = document.createElement("td");
+        let date = new Date(dati.time)
+        td_data.innerText = week_day[date.getDay()] + " " + date.toLocaleString()
+
+        // creo td temperatura
+        let td_temperatura = document.createElement("td");
+        td_temperatura.innerText = dati.temp + " " + dati_meteo.hourly_units.temperature_2m
+
+        // creo td temperatura
+        let td_wcode = document.createElement("td");
+        // td_wcode.innerText = weather_codes[dati.wcode][ dati.isnight? "night" : "day"]["description"]
+        // td_wcode.innerHTML = "<img src='"++"'></img>"
+        let img_meteo = document.createElement("img")
+        img_meteo.src = weather_codes[dati.wcode][dati.isnight ? "night" : "day"]["image"]
+        // img_meteo.setAttribute("src",weather_codes[dati.wcode][ dati.isnight? "night" : "day"]["image"] )
+
+        td_wcode.append(img_meteo)
+        // img_meteo.setAttribute("src",weather_codes[dati.wcode][ dati.isnight? "night" : "day"]["image"] )
+
+        // creo riga tabella e ci appendo i due td in ordine
+        let tr_data_temperatura = document.createElement("tr");
+        tr_data_temperatura.append(td_data)
+        tr_data_temperatura.append(td_temperatura)
+        tr_data_temperatura.append(td_wcode)
+
+        //aggiungo il tr al body tabella
+        tabella.children[1].append(tr_data_temperatura)
+
+    }
+
+
+    let result = await fetch("https://api.open-meteo.com/v1/forecast?latitude=45.408&longitude=11.8859&daily=sunset,sunrise&timezone=Europe/Rome&hourly=temperature_2m,relative_humidity_2m,weather_code&forecast_days=16")
+
+
 
     let dati_meteo = await result.json()
 
     class DatiMeteo {
 
-        constructor(time, temp) {
+        constructor(time, temp, wcode) {
             this.time = time
             this.temp = temp
+            this.wcode = wcode
+
+            // dati_meteo["daily"]["sunset"]
+
+
+            let day = this.time.slice(0, this.time.indexOf("T"))
+
+            let sunset_day = dati_meteo["daily"]["sunset"].filter((dayily_sunset_tm) => dayily_sunset_tm.indexOf(day) != -1)[0]
+            let sunrise_day = dati_meteo["daily"]["sunrise"].filter((dayily_sunrise_tm) => dayily_sunrise_tm.indexOf(day) != -1)[0]
+
+            let time_parsato = new Date(this.time)
+            let sunset_day_parsato = new Date(sunset_day)
+            let sunrise_day_parsato = new Date(sunrise_day)
+
+            //    console.log(this.time)
+            //    console.log(sunset_day)
+            //    console.log(( time_parsato<sunrise_day_parsato && time_parsato>sunset_day_parsato) ? "giorno":"notte")
+
+            this.isnight = (time_parsato > sunset_day_parsato || time_parsato < sunrise_day_parsato)
         }
 
 
@@ -31,29 +90,18 @@ window.addEventListener("load", async () => {
 
     dati_meteo.hourly.time.forEach((time, index) => {
         let temp_attuale = dati_meteo.hourly.temperature_2m[index]
-        array_meteo.push(new DatiMeteo(time, temp_attuale))
+        let meteo_attuale = dati_meteo.hourly.weather_code[index]
+        array_meteo.push(new DatiMeteo(time, temp_attuale, meteo_attuale))
 
     })
 
 
     let tabella = document.getElementById("tabellameteo")
+
     array_meteo.forEach((dati) => {
-        // creo td data
-        let td_data = document.createElement("td");
-        let date = new Date(dati.time)
-        td_data.innerText = week_day[date.getDay()] + " " + date.toLocaleString()
 
-        // creo td temperatura
-        let td_temperatura = document.createElement("td");
-        td_temperatura.innerText = dati.temp + " " + dati_meteo.hourly_units.temperature_2m
+        popolaTabella(dati, tabella)
 
-        // creo riga tabella e ci appendo i due td in ordine
-        let tr_data_temperatura = document.createElement("tr");
-        tr_data_temperatura.append(td_data)
-        tr_data_temperatura.append(td_temperatura)
-
-        //aggiungo il tr al body tabella
-        tabella.children[1].append(tr_data_temperatura)
     })
     // la tabella è finita
 
@@ -91,23 +139,5 @@ window.addEventListener("load", async () => {
     })
 
 
-    function popolaTabella(dati, tabella) {
-        // creo td data
-        let td_data = document.createElement("td");
-        let date = new Date(dati.time)
-        td_data.innerText = week_day[date.getDay()] + " " + date.toLocaleString()
 
-        // creo td temperatura
-        let td_temperatura = document.createElement("td");
-        td_temperatura.innerText = dati.temp + " " + dati_meteo.hourly_units.temperature_2m
-
-        // creo riga tabella e ci appendo i due td in ordine
-        let tr_data_temperatura = document.createElement("tr");
-        tr_data_temperatura.append(td_data)
-        tr_data_temperatura.append(td_temperatura)
-
-        //aggiungo il tr al body tabella
-        tabella.children[1].append(tr_data_temperatura)
-        
-    }
 })
