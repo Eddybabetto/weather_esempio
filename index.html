@@ -11,9 +11,14 @@
 <body>
         <h1 class="centrato" id="titolo-meteo">METEO</h1>
         <div class="centrato">
-            <input type="range" id="data-meteo" name="data-meteo" min="0" max="11" />
+            <input type="range" id="data-meteo" name="data-meteo" min="0" max="11" value="0" />
             <label for="data-meteo">Meteo Selezionato</label>
             <div id="meteoselezionato"></div>
+        </div>
+
+        <div class="centrato" id="filters">
+          <button id="reset"> RESET </button>
+
         </div>
 
         <table id="tabellameteo" class="centrato">

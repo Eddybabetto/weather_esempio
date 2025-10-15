@@ -14,6 +14,16 @@ window.addEventListener("load", async () => {
 
     console.log(weather_codes["0"]["day"]["description"])
 
+
+function populateFilter(weather_codes){
+ let blocc_filtri = document.getElementById("filters")
+    for (const [weather_code, body_weather_code] of Object.entries(weather_codes)) {
+    blocc_filtri.innerHTML+="<button class=\"filtro\" valorefiltro=\""+weather_code+"\"><img style=\"width: 20px; height: 20px;\" src=\""+body_weather_code["day"]["image"]+"\"></img> </button>"
+    }
+
+}
+populateFilter(weather_codes)
+
     function popolaTabella(dati, tabella) {
         // creo td data
         let td_data = document.createElement("td");
@@ -33,9 +43,8 @@ window.addEventListener("load", async () => {
         // img_meteo.setAttribute("src",weather_codes[dati.wcode][ dati.isnight? "night" : "day"]["image"] )
 
         td_wcode.append(img_meteo)
-        // img_meteo.setAttribute("src",weather_codes[dati.wcode][ dati.isnight? "night" : "day"]["image"] )
 
-        // creo riga tabella e ci appendo i due td in ordine
+        // creo riga tabella e ci appendo i tre td in ordine
         let tr_data_temperatura = document.createElement("tr");
         tr_data_temperatura.append(td_data)
         tr_data_temperatura.append(td_temperatura)
@@ -87,6 +96,7 @@ window.addEventListener("load", async () => {
     }
 
     let array_meteo = []
+   
 
     dati_meteo.hourly.time.forEach((time, index) => {
         let temp_attuale = dati_meteo.hourly.temperature_2m[index]
@@ -96,20 +106,7 @@ window.addEventListener("load", async () => {
     })
 
 
-    let tabella = document.getElementById("tabellameteo")
-
-    array_meteo.forEach((dati) => {
-
-        popolaTabella(dati, tabella)
-
-    })
-    // la tabella è finita
-
-
-
-
-
-    let date_univoche = []
+const date_univoche = []
     array_meteo.map((element) => {
 
         datestring = new Date(element.time).toDateString()
@@ -119,6 +116,21 @@ window.addEventListener("load", async () => {
 
     })
 
+
+ let current_array_meteo = structuredClone(array_meteo)
+
+    let tabella = document.getElementById("tabellameteo")
+
+    current_array_meteo = array_meteo.filter((oggetto_meteo) => {
+        return new Date(oggetto_meteo.time).toDateString() == date_univoche[0]
+    })
+
+    current_array_meteo.forEach((dati) => {
+        popolaTabella(dati, tabella)
+    })
+
+
+    
     //attribuisco a slider la lunghezza massima dell'array
     let slider = document.getElementById("data-meteo")
     slider.attributes.max.value = date_univoche.length - 1
@@ -130,13 +142,37 @@ window.addEventListener("load", async () => {
         tabella.children[1].remove()
         tabella.append(document.createElement("tbody"));
 
-        array_meteo.filter((oggetto_meteo) => {
+        current_array_meteo = array_meteo.filter((oggetto_meteo) => {
             return new Date(oggetto_meteo.time).toDateString() == date_univoche[event.target.value]
-        }).forEach((dati) => {
+        })
+
+        current_array_meteo.forEach((dati) => {
             popolaTabella(dati, tabella)
         })
 
     })
+
+Array.prototype.forEach.call(document.getElementsByClassName("filtro"), function(button) {
+
+    button.addEventListener("click", (e)=>{
+  
+         current_array_meteo = array_meteo.filter((oggetto_meteo) => {
+            return new Date(oggetto_meteo.time).toDateString() == date_univoche[slider.value]
+        }).filter((oggetto_meteo) => {
+
+            return oggetto_meteo.wcode == button.getAttribute("valorefiltro")
+        })
+
+        tabella.children[1].innerHTML = "<tr></tr>"
+        current_array_meteo.forEach((dati) => {
+            popolaTabella(dati, tabella)
+        })
+
+    })
+
+      
+            
+    });
 
 
 
