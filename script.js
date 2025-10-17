@@ -15,14 +15,44 @@ window.addEventListener("load", async () => {
     console.log(weather_codes["0"]["day"]["description"])
 
 
-function populateFilter(weather_codes){
- let blocc_filtri = document.getElementById("filters")
-    for (const [weather_code, body_weather_code] of Object.entries(weather_codes)) {
-    blocc_filtri.innerHTML+="<button class=\"filtro\" valorefiltro=\""+weather_code+"\"><img style=\"width: 20px; height: 20px;\" src=\""+body_weather_code["day"]["image"]+"\"></img> </button>"
+    function populateFilter(weather_codes) {
+        let blocc_filtri = document.getElementById("filters")
+        for (const [weather_code, body_weather_code] of Object.entries(weather_codes)) {
+            blocc_filtri.innerHTML += "<button class=\"filtro\" valorefiltro=\"" + weather_code + "\"><img style=\"width: 20px; height: 20px;\" src=\"" + body_weather_code["day"]["image"] + "\"></img> </button>"
+        }
+
+    }
+    // const { key, ...profilesWithoutKey } = profiles;
+    // Object.keys()
+    //simile, ma ricorsiva
+    let blocc_filtri = document.getElementById("filters")
+
+    function recursivePopFilter(weather_codes, html_acc) {
+        if (!Object.keys(weather_codes).length) {
+            return html_acc
+        }
+        html_acc += "<button class=\"filtro\" valorefiltro=\"" + Object.keys(weather_codes)[0] + 
+        "\"><img style=\"width: 20px; height: 20px;\" src=\"" 
+        + weather_codes[Object.keys(weather_codes)[0]]["day"]["image"] + 
+        "\"></img> </button>"
+
+        delete weather_codes[Object.keys(weather_codes)[0]]
+       return recursivePopFilter(weather_codes, html_acc)
     }
 
-}
-populateFilter(weather_codes)
+    function recursivePopFilter2(weather_codes) {
+        blocc_filtri.innerHTML += "<button class=\"filtro\" valorefiltro=\"" + Object.keys(weather_codes)[0] + "\"><img style=\"width: 20px; height: 20px;\" src=\"" + weather_codes[Object.keys(weather_codes)[0]]["day"]["image"] + "\"></img> </button>"
+        delete weather_codes[Object.keys(weather_codes)[0]]
+
+        if (Object.keys(weather_codes).length > 0) {
+            recursivePopFilter2(weather_codes)
+        }
+    }
+
+    // fine blocco ricorsiva
+    filter_codes = structuredClone(weather_codes)
+    // recursivePopFilter2(filter_codes)
+     blocc_filtri.innerHTML= recursivePopFilter(filter_codes, "")
 
     function popolaTabella(dati, tabella) {
         // creo td data
@@ -96,7 +126,7 @@ populateFilter(weather_codes)
     }
 
     let array_meteo = []
-   
+
 
     dati_meteo.hourly.time.forEach((time, index) => {
         let temp_attuale = dati_meteo.hourly.temperature_2m[index]
@@ -106,7 +136,7 @@ populateFilter(weather_codes)
     })
 
 
-const date_univoche = []
+    const date_univoche = []
     array_meteo.map((element) => {
 
         datestring = new Date(element.time).toDateString()
@@ -117,10 +147,11 @@ const date_univoche = []
     })
 
 
- let current_array_meteo = structuredClone(array_meteo)
+    //  let current_array_meteo = structuredClone(array_meteo)
 
     let tabella = document.getElementById("tabellameteo")
 
+    //filtro i dati del meteo per la data odierna, la tabella viene inizializzata con una data sola
     current_array_meteo = array_meteo.filter((oggetto_meteo) => {
         return new Date(oggetto_meteo.time).toDateString() == date_univoche[0]
     })
@@ -130,7 +161,7 @@ const date_univoche = []
     })
 
 
-    
+
     //attribuisco a slider la lunghezza massima dell'array
     let slider = document.getElementById("data-meteo")
     slider.attributes.max.value = date_univoche.length - 1
@@ -152,28 +183,86 @@ const date_univoche = []
 
     })
 
-Array.prototype.forEach.call(document.getElementsByClassName("filtro"), function(button) {
+    Array.prototype.forEach.call(document.getElementsByClassName("filtro"), function (button) {
 
-    button.addEventListener("click", (e)=>{
-  
-         current_array_meteo = array_meteo.filter((oggetto_meteo) => {
-            return new Date(oggetto_meteo.time).toDateString() == date_univoche[slider.value]
-        }).filter((oggetto_meteo) => {
+        button.addEventListener("click", (e) => {
 
-            return oggetto_meteo.wcode == button.getAttribute("valorefiltro")
+            current_array_meteo = array_meteo.filter((oggetto_meteo) => {
+                return new Date(oggetto_meteo.time).toDateString() == date_univoche[slider.value]
+            }).filter((oggetto_meteo) => {
+
+                return oggetto_meteo.wcode == button.getAttribute("valorefiltro")
+            })
+
+            tabella.children[1].innerHTML = "<tr></tr>"
+            current_array_meteo.forEach((dati) => {
+                popolaTabella(dati, tabella)
+            })
+
         })
 
-        tabella.children[1].innerHTML = "<tr></tr>"
-        current_array_meteo.forEach((dati) => {
-            popolaTabella(dati, tabella)
-        })
 
-    })
 
-      
-            
     });
 
-
-
 })
+
+console.log("Start");  
+
+setTimeout(() => console.log("Timeout"), 0);  
+setTimeout(() => { 
+    Promise.resolve().then(() => console.log("Promise timeout"))
+    setTimeout(() => console.log("Timeout del timeout"), 0);  
+}, 0); 
+
+
+
+Promise.resolve().then(() => setTimeout(() => console.log("Timeout della promise"), 0) );  
+
+
+let oggettoA = {
+    a: "ciccio",
+    b: "pasticcio",
+    c: {}
+}
+
+// let oggettob = oggettoA copio il riferimento
+// let oggettob = {...oggettoA} copio il valore
+// let {a, ...oggettob} = oggettoA faccio il pop della chiave "a". e creo un nuovo oggettoB con i valori di oggettoA meno la chiaveA
+// let oggettob= structuredClone(oggettoA)
+// let oggettob= JSON.parse(JSON.stringify(oggettoA)) variante legacy di copia per valore
+
+
+// const a = {
+//    ...(condizione && {chiave_cond: "a"})
+// } inserimento contizionale di chiave su un nuovo oggetto
+
+console.log(a)
+
+console.log(oggettoA)
+console.log(oggettob)
+console.log(a)
+
+
+console.log("dopo il delete")
+console.log(oggettoA)
+console.log(oggettob)
+
+
+let arrayA = [1,2,3]
+// let arrayB = arrayA copio per riferimento
+ let arrayB = [...arrayA] 
+
+
+console.log(arrayA)
+console.log(arrayB)
+
+console.log(arrayB.pop())
+console.log("dopo il pop")
+console.log(arrayA)
+console.log(arrayB)
+
+console.log("End");  
+
+document.getElementById().removeEventListener("click")
+
